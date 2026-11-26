@@ -466,13 +466,27 @@
         .gesture-box .gesture-controls { display: flex; flex-wrap: wrap; gap: 8px; }
         .gesture-box button { white-space: normal; }
         #gesture-audio { margin-top: 8px; }
+        /* Mobile controls: native touch targets, stable video dimensions. */
+        [hidden] { display: none !important; }
+        .gesture-controls button { touch-action: manipulation; min-height: 52px; }
+        #camera-start { position: relative; z-index: 2; }
+        .gesture-preview { width: min(100%, 320px); aspect-ratio: 4/3; object-fit: contain; }
+        #mobile-camera-help summary { cursor: pointer; padding: 8px 0; }
+        #camera-direct { display: block; margin: 12px 0; }
+        @media (max-width: 600px) {
+            .gesture-box { padding: 12px; }
+            .gesture-controls { flex-direction: column; }
+            .gesture-controls button { width: 100%; font-size: 16px; }
+            .gesture-preview { width: 100%; }
+            #gesture-audio { width: 100%; min-height: 52px; font-size: 16px; }
+        }
     </style>
 </head>
 <body>
     <main class="wrap">
         <header class="mast">
             <span>R / CRÓNICAS DE LA CALLE</span>
-            <span class="stamp">ARCHIVO · 001 / V4</span>
+            <span class="stamp">ARCHIVO · 001 / MÓVIL V5</span>
         </header>
         <section class="hero" aria-labelledby="title">
             <div>
@@ -491,12 +505,18 @@
                 <h2 id="gesture-title">La sonrisa abre la historia</h2>
                 <p>R solo habla cuando sonríes. Mira a la cámara: al dejar de sonreír, el relato se pausa y conserva tu avance.</p>
                 <div class="gesture-controls">
-                    <button type="button" class="primary" id="camera-start">Activar cámara y comenzar</button>
+                    <button type="button" class="primary" id="camera-start">Activar cámara frontal</button>
                     <button type="button" id="camera-stop" disabled>Apagar cámara</button>
                     <button type="button" id="detector-retry" hidden>Reintentar detector</button>
                 </div>
-                <video id="gesture-video" class="gesture-preview" autoplay muted playsinline hidden aria-label="Vista en directo de tu cámara"></video>
+                <video id="gesture-video" class="gesture-preview" autoplay muted playsinline webkit-playsinline hidden aria-label="Vista en directo de tu cámara"></video>
                 <p id="camera-info" role="status" aria-live="polite">Cámara: iniciando controles…</p>
+                <div id="mobile-camera-help" style="font-size:.85rem">
+                    <p>En Android, activa el acceso a la cámara en los ajustes rápidos y permite que Chrome use la cámara.</p>
+                    <details><summary>Si Chrome no muestra el permiso</summary><p>Abre la página HTTPS directamente en Chrome. Toca el icono de controles del sitio junto a la dirección, entra a Permisos y permite Cámara. En Ajustes de Android → Aplicaciones → Chrome → Permisos, permite Cámara. Regresa y recarga la página.</p></details>
+                    <button type="button" id="camera-copy">Copiar diagnóstico</button>
+                    <a id="camera-direct" hidden target="_blank" rel="noopener">Abrir página fuera de esta ventana</a>
+                </div>
                 <p id="camera-diagnostics" style="font-size:.78rem;overflow-wrap:anywhere" role="status">Comprobando navegador…</p>
 <button type="button" id="camera-preview-retry" hidden>Mostrar vista previa</button>
 <p id="detector-info" role="status" aria-live="polite">Detector: sin iniciar.</p>
@@ -507,23 +527,23 @@
                 <p class="gesture-note">Se analiza únicamente el gesto de sonrisa en tu navegador, sin identificarte ni guardar o enviar imágenes. Se necesita conexión para cargar el detector y permiso de cámara. Usa buena iluminación.</p>
             </section>
 <script>
-(function(){
-var g=function(id){return document.getElementById(id);};
-var b=g('camera-start'), stop=g('camera-stop'), v=g('gesture-video'), info=g('camera-info'), diag=g('camera-diagnostics'), retry=g('camera-preview-retry');
-var c=window.RCamera={stream:null,pending:false,serial:0};
-function env(){var p=document.permissionsPolicy||document.featurePolicy;var a='desconocida';try{if(p)a=p.allowsFeature('camera')?'permitida':'bloqueada';}catch(e){}return 'V4 | '+location.protocol+' | contexto seguro: '+(window.isSecureContext?'sí':'no')+' | ventana: '+(window.top===window.self?'directa':'incrustada')+' | política: '+a;}
-function report(t){info.textContent='Cámara: '+t;}
-function release(s){if(s)s.getTracks().forEach(function(t){t.stop();});}
-function error(e){var m={NotAllowedError:'permiso bloqueado. Revisa Chrome y Android.',NotFoundError:'no hay cámara disponible.',NotReadableError:'cámara ocupada o desactivada.',SecurityError:'acceso prohibido por el navegador.'};return (m[e.name]||e.message||String(e))+' ['+(e.name||'Error')+']';}
-diag.textContent=env();report('botón listo. Pulsa para solicitar acceso.');
-c.close=function(message,notify){
- c.serial++;c.pending=false;release(c.stream);c.stream=null;v.srcObject=null;v.hidden=true;retry.hidden=true;b.disabled=false;b.textContent='Activar cámara';stop.disabled=true;report(message||'apagada.');if(notify!==false&&c.onStop)c.onStop(message);
-};
-function preview(){
- if(!c.stream)return;var token=c.serial;v.hidden=false;v.muted=true;v.defaultMuted=true;v.playsInline=true;v.srcObject=c.stream;retry.hidden=false;
- var result;try{result=v.play();}catch(e){report('conectada; pulsa Mostrar vista previa. '+error(e));return;}
- Promise.resolve(result).then(function(){if(token!==c.serial)return;retry.hidden=true;report('activa. Vista previa iniciada.');if(c.onReady)c.onReady(c.stream);else report('activa; el reproductor no inició.');},function(e){if(token===c.serial)report('conectada; pulsa Mostrar vista previa. '+error(e));});
-}
-function open(){
- if(c.pending||c.stream)return;diag.textContent=env()+' | pulsación recibida';report('solicitando permiso…');
- if(!window.isSecureContext||!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=='function'){report('API no disponible. Abre la URL HTTPS publicada direct
+(function () {
+    'use strict';
+    var get = function (id) { return document.getElementById(id); };
+    var button = get('camera-start');
+    var stop = get('camera-stop');
+    var video = get('gesture-video');
+    var info = get('camera-info');
+    var diag = get('camera-diagnostics');
+    var retry = get('camera-preview-retry');
+    var direct = get('camera-direct');
+    var copy = get('camera-copy');
+    var c = window.RCamera = { stream: null, pending: false, serial: 0 };
+    var log = [];
+    var permission = 'sin consultar';
+    var permissionTimer = 0;
+    var previewTimer = 0;
+    var notified = null;
+    var policy = 'desconocida';
+    try {
+        var pp
