@@ -459,7 +459,7 @@
             display: block;
             margin: 12px 0;
         }
-        .gesture-preview[hidden], #gesture-audio[hidden] { display: none; }
+        #detector-retry[hidden], .gesture-preview[hidden], #gesture-audio[hidden] { display: none; }
         .gesture-box label { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
         .gesture-box input[type="range"] { max-width: 100%; accent-color: #e04b45; }
         .gesture-box meter { width: min(100%, 220px); height: 14px; }
@@ -493,8 +493,11 @@
                 <div class="gesture-controls">
                     <button type="button" class="primary" id="camera-start">Activar cámara y comenzar</button>
                     <button type="button" id="camera-stop" disabled>Apagar cámara</button>
+                    <button type="button" id="detector-retry" hidden>Reintentar detector</button>
                 </div>
                 <video id="gesture-video" class="gesture-preview" autoplay muted playsinline hidden aria-label="Vista en directo de tu cámara"></video>
+                <p id="camera-info" role="status" aria-live="polite">Cámara: sin activar.</p>
+                <p id="detector-info" role="status" aria-live="polite">Detector: sin iniciar.</p>
                 <p id="gesture-status" class="gesture-status" role="status" aria-live="polite">Cámara apagada. Narración bloqueada.</p>
                 <label for="smile-level">Sonrisa detectada <meter id="smile-level" min="0" max="1" value="0">0</meter></label>
                 <label for="smile-threshold">Sensibilidad <input id="smile-threshold" type="range" min="0.20" max="0.70" step="0.05" value="0.40"> <span id="smile-setting">Normal</span></label>
@@ -520,4 +523,4 @@
                     Seguir texto
                 </label>
             </div>
-            <audio id="audio" hidden preload="metadata" playsinline aria-label="Audio completo de R" src="data:audio/mpeg;base64,SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjcuMTAzAAAAAAAAAAAAAAD/84DAAAAAAAAAAAAASW5mbwAAAA8AAA/WAAzuMwADBggLDRASFRcaHB8hJCYpLC4xMzY4Oz1AQkVHSkxPUVRXWVxfYmRnaWxucXN2eHt9gIOFiIqNj5KUl5mcnqGjpqirrrCztbi6vb/DxcjKzc/S1Nfa3N/h5Obp6+7w8/X4+v0AAAAATGF2YzYxLjE5AAAAAAAAAAAAAAAAJARRAAAAAAAM7jOVi68mAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OAxAAoOeHkBVnAAASARjEQCOZIKMxqUHtweDQoSenh+YHAgHAM/Lhlt2LlzDPPAybjKAO6DRzPTNEdgxlSZwqxwAsIsRrk64agixIEu0/ZRGIxL7eqljdPblDlw/fwwryuX5Sunt9/WG6eMWN0/ZQ/kOYv5DnK9Pb+pSRun1SWOV7eqen7//nnnh+8/1hhuksclAxw+Iz8ufB/iQ5U4MZD1A/prPlBoIf4f/wwQCI39RTH1sUibP+1gAU3GCMJMqk0DcoIgXQBlX3asyQ4Hf/zgsQiNCMSol+YyAIzj00sCbitBoZgwnGDgvsYawiJgDIA230CqQU1E0Dm04w1xmmLodibhD8v7TZ0tfq8EUJBuyjcqi9n9nWd39YfQM4gRal25uSKDhzKEnL/p48mA913rL7Vj//510kbmpUtn+cqRh6JB3//6SvjqxvtJbz13cTyh6dhcnpJXSwVZjMurXuU9S1zVqxnjzP////ncJ5/L0s53X7/vPxuS9lT7vZGf//////qWHYkEvnKIAA26JZG1zdKaP2kYAQqJmxIDHBy//OCxBUwkwqiX5qgA3IFhYOBLHFjy5g42/YaOfkO3LRB4gkBFINYBhRBkSQQHEBnxQoArUDABxkgMQBJ4vAiCijoE8VkVCcmMUBvsnNQaAQBUAC54KAZiHRB7xOqJgQEDI6RmkZiigY4CDZkAYx0h0jRLr50bQXUGRoFvwcwbx/ydHIDEI2X9ZFxmy58okWRTPmCjMmjBExMUXUlUl9GnSb91f0CgUhzCMLyH/MjcWakQEqo/+YLKpPiaiAQLQAABwGRACgLqmB00h76h4DDAo3/84LEFi/UCqZfmJABOLtoUJsNqTcBCWzdhxXAQZEhyyNI0cM/GZTD2h3jDWGqhORFBCUMeAia+OwvmiAGGgMEKijk+OM3W5saE+iWCMDAYNgDayQIgT5PoVFImmEBiyXDixc4r6Z0gha+supHrqZhyhkB0Eyb3RMf/6fbv4mwmy6RIli0RccwwM0i8e/0EDc3X/9TIO/TTQTWykSaJUlSCE+6l///////l1I8augpbmzJu1ZxcGosYG7AQAkOWp3bxxQBzyKas6liuEqANI4xAv/zgsQaMpva3a+YkSKBHkNBdBz1alGnmAYwOeTQPYNCGIF9iLKqKPrYZsG0A2Ad5DTQTsKArFdEpOpQ5gr4uQqIDWD0ifKqSYkIXIZ6xZ4hUkTBCsZ0XRBn50gQgmVxnxpoeJELJLxcKqfIkRoyxW+T6jtJBNRcs84RYkC4mTCU8tRmik+j9//2QTKi3++6lJE8OYcf9ushpVJkgpqVS+bGjoKstN17outUXAeKYzCGiik1lb1rlEipaLpqrXWsAByf8gyVOS1lgBuh2BiEiwqt//OCxBMv
+            <audio id="audio" hidden preload="metadata" playsinline aria-label="Audio completo de R" src="data:audio/mpeg;base64,SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjcuMTAzAAAAAAAAAAAAAAD/84DAAAAAAAAAAAAASW5mbwAAAA8AAA/WAAzuMwADBggLDRASFRcaHB8hJCYpLC4xMzY4Oz1AQkVHSkxPUVRXWVxfYmRnaWxucXN2eHt9gIOFiIqNj5KUl5mcnqGjpqirrrCztbi6vb/DxcjKzc/S1Nfa3N/h5Obp6+7w8/X4+v0AAAAATGF2YzYxLjE5AAAAAAAAAAAAAAAAJARRAAAAAAAM7jOVi68mAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OAxAAoOeHkBVnAAASARjEQCOZIKMxqUHtweDQoSenh+YHAgHAM/Lhlt2LlzDPPAybjKAO6DRzPTNEdgxlSZwqxwAsIsRrk64agixIEu0/ZRGIxL7eqljdPblDlw/fwwryuX5Sunt9/WG6eMWN0/ZQ/kOYv5DnK9Pb+pSRun1SWOV7eqen7//nnnh+8/1hhuksclAxw+Iz8ufB/iQ5U4MZD1A/prPlBoIf4f/wwQCI39RTH1sUibP+1gAU3GCMJMqk0DcoIgXQBlX3asyQ4Hf/zgsQiNCMSol+YyAIzj00sCbitBoZgwnGDgvsYawiJgDIA230CqQU1E0Dm04w1xmmLodibhD8v7TZ0tfq8EUJBuyjcqi9n9nWd39YfQM4gRal25uSKDhzKEnL/p48mA913rL7Vj//510kbmpUtn+cqRh6JB3//6SvjqxvtJbz13cTyh6dhcnpJXSwVZjMurXuU9S1zVqxnjzP////ncJ5/L0s53X7/vPxuS9lT7vZGf//////qWHYkEvnKIAA26JZG1zdKaP2kYAQqJmxIDHBy//OCxBUwkwqiX5qgA3IFhYOBLHFjy5g42/YaOfkO3LRB4gkBFINYBhRBkSQQHEBnxQoArUDABxkgMQBJ4vAiCijoE8VkVCcmMUBvsnNQaAQBUAC54KAZiHRB7xOqJgQEDI6RmkZiigY4CDZkAYx0h0jRLr50bQXUGRoFvwcwbx/ydHIDEI2X9ZFxmy58okWRTPmCjMmjBExMUXUlUl9GnSb91f0CgUhzCMLyH/MjcWakQEqo/+YLKpPiaiAQLQAABwGRACgLqmB00h76h4DDAo3/84LEFi/UCqZfmJABOLtoUJsNqTcBCWzdhxXAQZEhyyNI0cM/GZTD2h3jDWGqhORFBCUMeAia+OwvmiAGGgMEKijk+OM3W5saE+iWCMDAYNgDayQIgT5PoVFImmEBiyXDixc4r6Z0gha+supHrqZhyhkB0Eyb3RMf/6fbv4mwmy6RIli0RccwwM0i8e/0EDc3X/9TIO/TTQTWykSaJUlSCE+6l///////l1I8augpbmzJu1ZxcGosYG7AQ
